@@ -3,7 +3,7 @@
 ## Development Environment
 **Let's try to use Ubuntu-22.04.**
 
-In order to build llvm-your-own-pass you will need:
+In order to build **your-own-llvm-pass** you will need:
 - LLVM 12 or higher
 - C++ compiler that supports C++14
 - CMake 3.13.4 or higher
@@ -34,6 +34,50 @@ cmake -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_PROJ
 cmake --build .
 ```
 For more details read the [official documentation](https://llvm.org/docs/CMake.html).
+
+# LLVM Toolchain Commands
+This section describes how to use LLVM toolchain commands to work with `.c` source files, `.ll` LLVM IR code, and `.bc` LLVM bitcode. Optimization levels `-O0`, `-O1`, and `-O2` can be applied depending on the required stage of optimization.
+
+## Generate LLVM IR (.ll) from a C Source Code
+To compile a `.c` source file into LLVM IR (.ll) with a specified optimization level, use:
+
+```bash
+clang -S -emit-llvm -O0 <sample.c> -o <sample.ll>
+```
+
+Replace -O0 with -O1 or -O2 to apply higher levels of optimization.
+
+## Convert LLVM IR (.ll) to LLVM Bitcode (.bc)
+To convert an LLVM IR file (.ll) to LLVM bitcode (.bc):
+```bash
+llvm-as <sample.ll> -o <sample.bc>
+```
+
+## Convert LLVM Bitcode (.bc) to LLVM IR (.ll)
+To revert an LLVM bitcode file (.bc) back to LLVM IR (.ll):
+```bash
+llvm-dis <sample.bc> -o <sample.ll>
+```
+
+## Generate Control Flow Graph (CFG) PDF from LLVM IR
+To visualize the control flow graph, follow these steps:
+1. Install **Graphviz** (if not already installed):
+    ```bash
+    sudo apt install graphviz
+    ```
+2. Generate **.dot** Files for Functions in the LLVM IR:
+
+    Use the **opt** command to create **.dot** files for each function’s CFG:
+    ```bash
+    opt -dot-cfg -enable-new-pm=0 <sample.ll>
+    ```
+    This command generates files like **./.func1.dot**, **./.func2.dot**, and **./.func3.dot**.
+3. Convert **.dot** Files to PDF:
+    Convert each .dot file to a PDF:
+    ```bash
+    dot -Tpdf <./.func1.dot> -o <func.pdf>
+    ```
+    This command will output a PDF visualizing the control flow for the function specified in the .dot file.
 
 # Building & Testing
 ## Building
