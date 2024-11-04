@@ -17,7 +17,7 @@ PASS_CPP_FILES=newPM/SamplePass.cpp
 # Arch-specific
 X64_SAMPLE_OBJ_FILES=$(foreach prog, $(PROGS), $(foreach opt, $(OPT_LEVEL), x64-$(prog).$(opt).o))
 
-all: cfg-flattenPM/build-12/libObfuscation.so test
+all: newPM/build-12/libSamplePass.so test
 
 cfg-flattenPM/build-17/libObfuscation.so: $(PASS_CPP_FILES) | cfg-flattenPM/build-17
 	cd cfg-flattenPM/build-17 && LLVM_VERSION=17 cmake .. -GNinja -DCMAKE_BUILD_TYPE=Release && ninja
