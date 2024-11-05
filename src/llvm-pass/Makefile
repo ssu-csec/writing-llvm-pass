@@ -9,10 +9,10 @@ LLC=llc-$(PASS_VERSION)
 
 LL_FILES=$(foreach prog, $(PROGS), $(foreach opt, $(OPT_LEVEL), $(prog).$(opt).ll))
 OBJ_FILES=$(foreach prog, $(PROGS), $(foreach opt, $(OPT_LEVEL), $(prog).$(opt).o))
-# SAMPLE_LL_FILES=$(foreach prog, $(PROGS), $(foreach opt, $(OPT_LEVEL), $(prog).$(opt).flatten.ll $(prog).$(opt).fake.ll $(prog).$(opt).harden.ll))
-SAMPLE_LL_FILES=$(foreach prog, $(PROGS), $(foreach opt, $(OPT_LEVEL), $(prog).$(opt).sample.ll))
-# PASS_CPP_FILES=cfg-flattenPM/CFGFlattenPass.cpp cfg-flattenPM/FakeBBInsertionPass.cpp cfg-flattenPM/JunkCodeInsertionPass.cpp
-PASS_CPP_FILES=newPM/SamplePass.cpp
+# SAMPLE_LL_FILES=$(foreach prog, $(PROGS), $(foreach opt, $(OPT_LEVEL), $(prog).$(opt).sample.ll))
+SAMPLE_LL_FILES=$(foreach prog, $(PROGS), $(foreach opt, $(OPT_LEVEL), $(prog).$(opt).flatten.ll $(prog).$(opt).fake.ll $(prog).$(opt).harden.ll))
+PASS_CPP_FILES=cfg-flattenPM/CFGFlattenPass.cpp cfg-flattenPM/FakeBBInsertionPass.cpp cfg-flattenPM/JunkCodeInsertionPass.cpp
+# PASS_CPP_FILES=newPM/SamplePass.cpp
 
 # Arch-specific
 X64_SAMPLE_OBJ_FILES=$(foreach prog, $(PROGS), $(foreach opt, $(OPT_LEVEL), x64-$(prog).$(opt).o))
@@ -37,9 +37,6 @@ cfg-flattenPM/build-13/libObfuscation.so: $(PASS_CPP_FILES) | cfg-flattenPM/buil
 cfg-flattenPM/build-12/libObfuscation.so: $(PASS_CPP_FILES) | cfg-flattenPM/build-12
 	cd cfg-flattenPM/build-12 && LLVM_VERSION=12 cmake .. -GNinja -DCMAKE_BUILD_TYPE=Release && ninja
 
-cfg-flattenPM/build-11/libObfuscation.so: $(PASS_CPP_FILES) | cfg-flattenPM/build-11
-	cd cfg-flattenPM/build-11 && LLVM_VERSION=11 cmake .. -GNinja -DCMAKE_BUILD_TYPE=Release && ninja
-
 cfg-flattenPM/build-17:
 	mkdir -p $@
 
@@ -56,9 +53,6 @@ cfg-flattenPM/build-13:
 	mkdir -p $@
 
 cfg-flattenPM/build-12:
-	mkdir -p $@
-
-cfg-flattenPM/build-11:
 	mkdir -p $@
 
 newPM/build-17/libSamplePass.so: $(PASS_CPP_FILES) | newPM/build-17
@@ -99,6 +93,9 @@ newPM/build-12:
 
 test: $(LL_FILES) $(SAMPLE_LL_FILES) # $(X64_SAMPLE_OBJ_FILES)
 
+# llvm_pass_tool: cfg-flattenPM/main.cpp cfg-flattenPM/CommonOptions.cpp $(PASS_CPP_FILES) | cfg-flattenPM/build-12
+# 	$(CPP) cfg-flattenPM/main.cpp cfg-flattenPM/CommonOptions.cpp $(PASS_CPP_FILES) -o cfg-flattenPM/build-12/llvm_pass_tool $(shell llvm-config-$(PASS_VERSION) --cxxflags --ldflags --system-libs --libs all)
+
 %.O0.sample.ll: %.ll newPM/build-12/libSamplePass.so
 	$(OPT) -load-pass-plugin newPM/build-12/libSamplePass.so -passes='SamplePass' $< -o $@ -S
 
@@ -111,41 +108,41 @@ test: $(LL_FILES) $(SAMPLE_LL_FILES) # $(X64_SAMPLE_OBJ_FILES)
 %.O3.sample.ll: %.ll newPM/build-12/libSamplePass.so
 	$(OPT) -load-pass-plugin newPM/build-12/libSamplePass.so -passes='SamplePass' $< -o $@ -S
 
-# %.O0.flatten.ll: %.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='CFGFlattenPass' $< -o $@ -S
+%.O0.flatten.ll: %.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='CFGFlattenPass' $< -o $@ -S
 
-# %.O1.flatten.ll: %.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='CFGFlattenPass' $< -o $@ -S
+%.O1.flatten.ll: %.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='CFGFlattenPass' $< -o $@ -S
 
-# %.O2.flatten.ll: %.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='CFGFlattenPass' $< -o $@ -S
+%.O2.flatten.ll: %.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='CFGFlattenPass' $< -o $@ -S
 
-# %.O3.flatten.ll: %.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='CFGFlattenPass' $< -o $@ -S
+%.O3.flatten.ll: %.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='CFGFlattenPass' $< -o $@ -S
 
-# %.O0.fake.ll: %.O0.flatten.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='FakeBBInsertionPass' $< -o $@ -S
+%.O0.fake.ll: %.O0.flatten.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='FakeBBInsertionPass' $< -o $@ -S
 
-# %.O1.fake.ll: %.O1.flatten.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='FakeBBInsertionPass' $< -o $@ -S
+%.O1.fake.ll: %.O1.flatten.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='FakeBBInsertionPass' $< -o $@ -S
 
-# %.O2.fake.ll: %.O2.flatten.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='FakeBBInsertionPass' $< -o $@ -S
+%.O2.fake.ll: %.O2.flatten.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='FakeBBInsertionPass' $< -o $@ -S
 
-# %.O3.fake.ll: %.O3.flatten.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='FakeBBInsertionPass' $< -o $@ -S
+%.O3.fake.ll: %.O3.flatten.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='FakeBBInsertionPass' $< -o $@ -S
 
-# %.O0.harden.ll: %.O0.fake.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='JunkCodeInsertionPass' $< -o $@ -S
+%.O0.harden.ll: %.O0.fake.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='JunkCodeInsertionPass' $< -o $@ -S
 
-# %.O1.harden.ll: %.O1.fake.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='JunkCodeInsertionPass' $< -o $@ -S
+%.O1.harden.ll: %.O1.fake.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='JunkCodeInsertionPass' $< -o $@ -S
 
-# %.O2.harden.ll: %.O2.fake.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='JunkCodeInsertionPass' $< -o $@ -S
+%.O2.harden.ll: %.O2.fake.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='JunkCodeInsertionPass' $< -o $@ -S
 
-# %.O3.harden.ll: %.O3.fake.ll cfg-flattenPM/build-12/libObfuscation.so
-# 	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='JunkCodeInsertionPass' $< -o $@ -S
+%.O3.harden.ll: %.O3.fake.ll cfg-flattenPM/build-12/libObfuscation.so
+	$(OPT) -load-pass-plugin cfg-flattenPM/build-12/libObfuscation.so -passes='JunkCodeInsertionPass' $< -o $@ -S
 
 # %.O0.harden.ll: %.O0.ll | cfg-flattenPM/build-12/llvm_pass_tool
 # 	cfg-flattenPM/build-12/llvm_pass_tool -flatten-iterations=3 -num-fake-bb=20 $< -o $@
